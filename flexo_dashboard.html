@@ -6,550 +6,185 @@
 <title>Integral de Empaques — Control de Producción Flexografía</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0d13;
-    --panel: #111520;
-    --panel2: #161c2b;
-    --border: #1e2d4a;
-    --accent-cyan: #00e5ff;
-    --accent-magenta: #ff2d78;
-    --accent-green: #39ff14;
-    --accent-yellow: #ffe600;
-    --accent-orange: #ff6a00;
-    --text: #cde4ff;
-    --text-dim: #4e6a8a;
-    --botheven: #00e5ff;
-    --peashinn: #ff2d78;
-    --botheven-bg: rgba(0,229,255,0.07);
-    --peashinn-bg: rgba(255,45,120,0.07);
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-head: 'Oswald', sans-serif;
-    --font-body: 'Rajdhani', sans-serif;
-    --pin-color: #ffe600;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Scanlines overlay */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.08) 2px,
-      rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  /* ─── HEADER ─── */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 28px;
-    background: linear-gradient(90deg, #050810 0%, #0e1624 50%, #050810 100%);
-    border-bottom: 2px solid var(--accent-cyan);
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 0 30px rgba(0,229,255,0.18);
-  }
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  .logo-box {
-    background: var(--accent-cyan);
-    color: #000;
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 11px;
-    padding: 5px 10px;
-    letter-spacing: 2px;
-    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
-  }
-  .header-title {
-    font-family: var(--font-head);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--accent-cyan);
-    text-shadow: 0 0 12px rgba(0,229,255,0.5);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-  .header-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    margin-top: 2px;
-    text-transform: uppercase;
-  }
-  .header-right {
-    display: flex; align-items: center; gap: 24px;
-  }
-  .live-clock {
-    font-family: var(--font-mono);
-    font-size: 22px;
-    color: var(--accent-green);
-    text-shadow: 0 0 10px rgba(57,255,20,0.5);
-    letter-spacing: 2px;
-  }
-  .live-date {
-    font-size: 11px;
-    color: var(--text-dim);
-    text-align: right;
-    letter-spacing: 1px;
-    margin-top: 2px;
-  }
-  .header-stats {
-    display: flex; gap: 16px;
-  }
-  .hstat {
-    text-align: center;
-  }
-  .hstat-val {
-    font-family: var(--font-mono);
-    font-size: 18px;
-    font-weight: bold;
-  }
-  .hstat-lbl {
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* ─── LEGEND ─── */
-  .legend-bar {
-    display: flex;
-    gap: 20px;
-    padding: 8px 28px;
-    background: #0c1019;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .legend-item {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  .legend-bar .sep { flex: 1; }
-
-  /* ─── SUPERVISOR PIN MODAL ─── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    background: var(--panel);
-    border: 2px solid var(--pin-color);
-    border-radius: 4px;
-    padding: 32px;
-    width: 340px;
-    box-shadow: 0 0 40px rgba(255,230,0,0.25);
-    position: relative;
-  }
-  .modal-title {
-    font-family: var(--font-head);
-    font-size: 18px;
-    color: var(--pin-color);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    text-align: center;
-  }
-  .modal-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    text-align: center;
-    margin-bottom: 24px;
-    letter-spacing: 1px;
-  }
-  .pin-display {
-    display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;
-  }
-  .pin-dot {
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--pin-color);
-    background: transparent;
-    transition: background 0.15s;
-  }
-  .pin-dot.filled { background: var(--pin-color); }
-  .pin-pad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .pin-btn {
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--font-head);
-    font-size: 20px;
-    padding: 14px;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.12s;
-    letter-spacing: 1px;
-  }
-  .pin-btn:hover {
-    background: rgba(255,230,0,0.12);
-    border-color: var(--pin-color);
-    color: var(--pin-color);
-  }
-  .pin-btn.del { color: var(--accent-magenta); font-size: 14px; }
-  .pin-actions {
-    display: flex; gap: 10px;
-  }
-  .pin-cancel, .pin-confirm {
-    flex: 1; padding: 10px;
-    font-family: var(--font-head);
-    font-size: 14px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    border: none;
-    border-radius: 3px;
-  }
-  .pin-cancel {
-    background: transparent;
-    border: 1px solid var(--text-dim);
-    color: var(--text-dim);
-  }
-  .pin-confirm {
-    background: var(--pin-color);
-    color: #000;
-    font-weight: 700;
-  }
-  .pin-error {
-    text-align: center;
-    font-size: 12px;
-    color: var(--accent-magenta);
-    margin-top: 8px;
-    min-height: 18px;
-    letter-spacing: 1px;
-  }
-  .pin-machine-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent-cyan);
-    text-align: center;
-    margin-bottom: 18px;
-    letter-spacing: 2px;
-  }
-
-  /* ─── GRID ─── */
-  .machines-grid {
-    padding: 20px 20px 40px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
-    gap: 18px;
-  }
-
-  /* ─── MACHINE CARD ─── */
-  .machine-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    transition: transform 0.15s, box-shadow 0.2s;
-    position: relative;
-  }
-  .machine-card.botheven { border-top: 3px solid var(--botheven); }
-  .machine-card.peashinn { border-top: 3px solid var(--peashinn); }
-  .machine-card:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(0,0,0,0.5); }
-
-  /* Card header */
-  .card-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px;
-    position: relative;
-  }
-  .machine-card.botheven .card-header { background: var(--botheven-bg); }
-  .machine-card.peashinn .card-header { background: var(--peashinn-bg); }
-
-  .machine-id-block { display: flex; align-items: center; gap: 10px; }
-  .machine-num {
-    font-family: var(--font-head);
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .machine-card.botheven .machine-num { color: var(--botheven); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
-  .machine-card.peashinn .machine-num { color: var(--peashinn); text-shadow: 0 0 10px rgba(255,45,120,0.4); }
-
-  .machine-name-block {}
-  .machine-name {
-    font-family: var(--font-head);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-  .machine-card.botheven .machine-name { color: var(--botheven); }
-  .machine-card.peashinn .machine-name { color: var(--peashinn); }
-  .machine-type-tag {
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  .card-header-right { display: flex; align-items: center; gap: 10px; }
-
-  .status-badge {
-    font-size: 9px;
-    padding: 3px 9px;
-    border-radius: 2px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  .status-active { background: rgba(57,255,20,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
-  .status-pause { background: rgba(255,230,0,0.12); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
-  .status-stop { background: rgba(255,45,120,0.12); color: var(--accent-magenta); border: 1px solid var(--accent-magenta); }
-
-  .sup-btn {
-    background: rgba(255,230,0,0.1);
-    border: 1px solid var(--pin-color);
-    color: var(--pin-color);
-    font-size: 10px;
-    padding: 4px 9px;
-    cursor: pointer;
-    border-radius: 2px;
-    letter-spacing: 1px;
-    font-family: var(--font-body);
-    font-weight: 600;
-    transition: all 0.12s;
-    text-transform: uppercase;
-  }
-  .sup-btn:hover {
-    background: rgba(255,230,0,0.2);
-    box-shadow: 0 0 10px rgba(255,230,0,0.3);
-  }
-  .sup-badge {
-    background: rgba(255,230,0,0.18);
-    color: var(--pin-color);
-    border: 1px solid var(--pin-color);
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 2px;
-    display: none;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* Card body: fields */
-  .card-body { padding: 12px 14px; }
-
-  .fields-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px 10px;
-    margin-bottom: 8px;
-  }
-
-  .field-block {
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 6px 9px;
-    position: relative;
-  }
-  .field-block.span2 { grid-column: span 2; }
-  .field-block.span3 { grid-column: span 3; }
-
-  .field-label {
-    font-size: 8px;
-    color: var(--text-dim);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 3px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .field-value {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .field-input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    width: 100%;
-    caret-color: var(--accent-cyan);
-  }
-  .field-input::placeholder { color: var(--text-dim); }
-  .field-input:focus { color: var(--accent-cyan); }
-
-  .field-select {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    width: 100%;
-    cursor: pointer;
-    -webkit-appearance: none;
-  }
-  .field-select option { background: var(--panel); }
-
-  .field-textarea {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 12px;
-    width: 100%;
-    resize: none;
-    line-height: 1.4;
-  }
-  .field-textarea::placeholder { color: var(--text-dim); }
-  .field-textarea:focus { color: var(--accent-cyan); }
-
-  /* Operarios row */
-  .operarios-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-
-  /* Progress bar for cantidades */
-  .progress-wrap {
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-top: 4px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.4s ease;
-  }
-  .machine-card.botheven .progress-fill { background: var(--botheven); }
-  .machine-card.peashinn .progress-fill { background: var(--peashinn); }
-
-  /* Card footer */
-  .card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 14px;
-    border-top: 1px solid var(--border);
-    background: rgba(0,0,0,0.2);
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .footer-time {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-  }
-  .footer-actions { display: flex; gap: 6px; }
-  .btn-sm {
-    font-family: var(--font-body);
-    font-size: 10px;
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-dim);
-    cursor: pointer;
-    border-radius: 2px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all 0.12s;
-  }
-  .btn-sm:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
-  .btn-sm.save { border-color: var(--accent-green); color: var(--accent-green); }
-  .btn-sm.save:hover { background: rgba(57,255,20,0.1); }
-  .btn-sm.clear { border-color: var(--accent-magenta); color: var(--accent-magenta); }
-  .btn-sm.clear:hover { background: rgba(255,45,120,0.1); }
-
-  /* Saved toast */
-  .toast {
-    position: fixed;
-    bottom: 28px; right: 28px;
-    background: var(--accent-green);
-    color: #000;
-    font-family: var(--font-head);
-    font-size: 13px;
-    letter-spacing: 2px;
-    padding: 10px 22px;
-    border-radius: 3px;
-    box-shadow: 0 4px 20px rgba(57,255,20,0.4);
-    transform: translateY(60px);
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 500;
-    text-transform: uppercase;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  /* Supervisor unlock state */
-  .card-body.locked .field-input,
-  .card-body.locked .field-select,
-  .card-body.locked .field-textarea {
-    pointer-events: none;
-    opacity: 0.6;
-  }
-  .card-body.locked .status-select { pointer-events: none; }
-
-  .lock-overlay {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: rgba(5,8,16,0.5);
-    z-index: 10;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-head);
-    font-size: 12px;
-    color: var(--pin-color);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .lock-overlay.active { display: flex; }
-  .lock-icon { font-size: 22px; }
-
-  @media (max-width: 600px) {
-    .machines-grid { grid-template-columns: 1fr; padding: 10px; }
-    .fields-grid { grid-template-columns: 1fr 1fr; }
-    .header { flex-wrap: wrap; gap: 10px; }
-  }
+:root {
+  --bg: #0a0d13;
+  --panel: #111520;
+  --panel2: #161c2b;
+  --border: #1e2d4a;
+  --accent-cyan: #00e5ff;
+  --accent-magenta: #ff2d78;
+  --accent-green: #39ff14;
+  --accent-yellow: #ffe600;
+  --accent-orange: #ff6a00;
+  --text: #cde4ff;
+  --text-dim: #4e6a8a;
+  --botheven: #00e5ff;
+  --peashinn: #ff2d78;
+  --botheven-bg: rgba(0,229,255,0.07);
+  --peashinn-bg: rgba(255,45,120,0.07);
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-head: 'Oswald', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --pin-color: #ffe600;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+/* CONNECTION STATUS */
+.conn-bar{display:flex;align-items:center;gap:8px;padding:5px 20px;background:#050810;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);transition:background .3s}
+.conn-dot.online{background:var(--accent-green);box-shadow:0 0 8px var(--accent-green)}
+.conn-dot.offline{background:var(--accent-magenta);box-shadow:0 0 8px var(--accent-magenta)}
+.conn-dot.connecting{background:var(--accent-yellow);box-shadow:0 0 8px var(--accent-yellow);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.conn-txt{color:var(--text-dim)}
+/* HEADER */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+  background: linear-gradient(90deg, #050810 0%, #0e1624 50%, #050810 100%);
+  border-bottom: 2px solid var(--accent-cyan);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 0 30px rgba(0,229,255,0.18);
+  flex-wrap: wrap; gap: 10px;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo-box {
+  background: var(--accent-cyan); color: #000;
+  font-family: var(--font-head); font-weight: 700; font-size: 11px;
+  padding: 5px 10px; letter-spacing: 2px;
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+}
+.header-title {
+  font-family: var(--font-head); font-size: 20px; font-weight: 700;
+  color: var(--accent-cyan); text-shadow: 0 0 12px rgba(0,229,255,0.5);
+  letter-spacing: 3px; text-transform: uppercase;
+}
+.header-sub {
+  font-size: 11px; color: var(--text-dim); letter-spacing: 2px;
+  margin-top: 2px; text-transform: uppercase;
+}
+.header-right { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.live-clock {
+  font-family: var(--font-mono); font-size: 22px; color: var(--accent-green);
+  text-shadow: 0 0 10px rgba(57,255,20,0.5); letter-spacing: 2px;
+}
+.live-date { font-size: 11px; color: var(--text-dim); text-align: right; letter-spacing: 1px; margin-top: 2px; }
+.header-stats { display: flex; gap: 16px; }
+.hstat { text-align: center; }
+.hstat-val { font-family: var(--font-mono); font-size: 18px; font-weight: bold; }
+.hstat-lbl { font-size: 9px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+/* LEGEND */
+.legend-bar {
+  display: flex; gap: 20px; padding: 8px 28px; background: #0c1019;
+  border-bottom: 1px solid var(--border); align-items: center; flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.legend-bar .sep { flex: 1; }
+/* PIN MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--panel); border: 2px solid var(--pin-color); border-radius: 4px; padding: 32px; width: 340px; box-shadow: 0 0 40px rgba(255,230,0,0.25); position: relative; }
+.modal-title { font-family: var(--font-head); font-size: 18px; color: var(--pin-color); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; text-align: center; }
+.modal-sub { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 24px; letter-spacing: 1px; }
+.pin-display { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+.pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--pin-color); background: transparent; transition: background 0.15s; }
+.pin-dot.filled { background: var(--pin-color); }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.pin-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); font-family: var(--font-head); font-size: 20px; padding: 14px; cursor: pointer; border-radius: 3px; transition: all 0.12s; letter-spacing: 1px; }
+.pin-btn:hover { background: rgba(255,230,0,0.12); border-color: var(--pin-color); color: var(--pin-color); }
+.pin-btn.del { color: var(--accent-magenta); font-size: 14px; }
+.pin-actions { display: flex; gap: 10px; }
+.pin-cancel, .pin-confirm { flex: 1; padding: 10px; font-family: var(--font-head); font-size: 14px; letter-spacing: 2px; cursor: pointer; border: none; border-radius: 3px; }
+.pin-cancel { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); }
+.pin-confirm { background: var(--pin-color); color: #000; font-weight: 700; }
+.pin-error { text-align: center; font-size: 12px; color: var(--accent-magenta); margin-top: 8px; min-height: 18px; letter-spacing: 1px; }
+.pin-machine-name { font-family: var(--font-mono); font-size: 13px; color: var(--accent-cyan); text-align: center; margin-bottom: 18px; letter-spacing: 2px; }
+/* GRID */
+.machines-grid { padding: 20px 20px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 18px; }
+/* MACHINE CARD */
+.machine-card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; transition: transform 0.15s, box-shadow 0.2s; position: relative; }
+.machine-card.botheven { border-top: 3px solid var(--botheven); }
+.machine-card.peashinn { border-top: 3px solid var(--peashinn); }
+.machine-card:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(0,0,0,0.5); }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; position: relative; }
+.machine-card.botheven .card-header { background: var(--botheven-bg); }
+.machine-card.peashinn .card-header { background: var(--peashinn-bg); }
+.machine-id-block { display: flex; align-items: center; gap: 10px; }
+.machine-num { font-family: var(--font-head); font-size: 28px; font-weight: 700; line-height: 1; }
+.machine-card.botheven .machine-num { color: var(--botheven); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+.machine-card.peashinn .machine-num { color: var(--peashinn); text-shadow: 0 0 10px rgba(255,45,120,0.4); }
+.machine-name { font-family: var(--font-head); font-size: 14px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; }
+.machine-card.botheven .machine-name { color: var(--botheven); }
+.machine-card.peashinn .machine-name { color: var(--peashinn); }
+.machine-type-tag { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.card-header-right { display: flex; align-items: center; gap: 10px; }
+.sup-btn { background: rgba(255,230,0,0.1); border: 1px solid var(--pin-color); color: var(--pin-color); font-size: 10px; padding: 4px 9px; cursor: pointer; border-radius: 2px; letter-spacing: 1px; font-family: var(--font-body); font-weight: 600; transition: all 0.12s; text-transform: uppercase; }
+.sup-btn:hover { background: rgba(255,230,0,0.2); box-shadow: 0 0 10px rgba(255,230,0,0.3); }
+.sup-badge { background: rgba(255,230,0,0.18); color: var(--pin-color); border: 1px solid var(--pin-color); font-size: 9px; padding: 2px 7px; border-radius: 2px; display: none; letter-spacing: 1px; text-transform: uppercase; }
+.card-body { padding: 12px 14px; position: relative; }
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 10px; margin-bottom: 8px; }
+.field-block { background: var(--panel2); border: 1px solid var(--border); border-radius: 3px; padding: 6px 9px; position: relative; }
+.field-label { font-size: 8px; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; }
+.field-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-mono); font-size: 12px; width: 100%; caret-color: var(--accent-cyan); }
+.field-input::placeholder { color: var(--text-dim); }
+.field-input:focus { color: var(--accent-cyan); }
+.field-select { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-mono); font-size: 12px; width: 100%; cursor: pointer; -webkit-appearance: none; }
+.field-select option { background: var(--panel); }
+.field-textarea { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 12px; width: 100%; resize: none; line-height: 1.4; }
+.field-textarea::placeholder { color: var(--text-dim); }
+.field-textarea:focus { color: var(--accent-cyan); }
+.operarios-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.progress-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+.machine-card.botheven .progress-fill { background: var(--botheven); }
+.machine-card.peashinn .progress-fill { background: var(--peashinn); }
+.card-footer { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); flex-wrap: wrap; gap: 6px; }
+.footer-time { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.footer-actions { display: flex; gap: 6px; }
+.btn-sm { font-family: var(--font-body); font-size: 10px; padding: 4px 10px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 2px; letter-spacing: 1px; text-transform: uppercase; transition: all 0.12s; }
+.btn-sm:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.btn-sm.save { border-color: var(--accent-green); color: var(--accent-green); }
+.btn-sm.save:hover { background: rgba(57,255,20,0.1); }
+.btn-sm.clear { border-color: var(--accent-magenta); color: var(--accent-magenta); }
+.btn-sm.clear:hover { background: rgba(255,45,120,0.1); }
+.toast { position: fixed; bottom: 28px; right: 28px; background: var(--accent-green); color: #000; font-family: var(--font-head); font-size: 13px; letter-spacing: 2px; padding: 10px 22px; border-radius: 3px; box-shadow: 0 4px 20px rgba(57,255,20,0.4); transform: translateY(60px); opacity: 0; transition: all 0.3s; z-index: 500; text-transform: uppercase; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.card-body.locked .field-input, .card-body.locked .field-select, .card-body.locked .field-textarea { pointer-events: none; opacity: 0.6; }
+.card-body.locked .status-select { pointer-events: none; }
+.lock-overlay { display: none; position: absolute; inset: 0; background: rgba(5,8,16,0.5); z-index: 10; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 12px; color: var(--pin-color); letter-spacing: 2px; text-transform: uppercase; flex-direction: column; gap: 8px; }
+.lock-overlay.active { display: flex; }
+.lock-icon { font-size: 22px; }
+@media (max-width: 600px) {
+  .machines-grid { grid-template-columns: 1fr; padding: 10px; }
+  .fields-grid { grid-template-columns: 1fr 1fr; }
+  .header { flex-wrap: wrap; gap: 10px; }
+}
 </style>
 </head>
 <body>
+
+<!-- CONNECTION STATUS BAR -->
+<div class="conn-bar">
+  <div class="conn-dot connecting" id="connDot"></div>
+  <div class="conn-txt" id="connTxt">Conectando a la nube…</div>
+</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -562,18 +197,9 @@
   </div>
   <div class="header-right">
     <div class="header-stats">
-      <div class="hstat">
-        <div class="hstat-val" id="stat-active" style="color:var(--accent-green)">0</div>
-        <div class="hstat-lbl">Activas</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-val" id="stat-pause" style="color:var(--accent-yellow)">0</div>
-        <div class="hstat-lbl">Pausa</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-val" id="stat-stop" style="color:var(--accent-magenta)">0</div>
-        <div class="hstat-lbl">Parada</div>
-      </div>
+      <div class="hstat"><div class="hstat-val" id="stat-active" style="color:var(--accent-green)">0</div><div class="hstat-lbl">Activas</div></div>
+      <div class="hstat"><div class="hstat-val" id="stat-pause" style="color:var(--accent-yellow)">0</div><div class="hstat-lbl">Pausa</div></div>
+      <div class="hstat"><div class="hstat-val" id="stat-stop" style="color:var(--accent-magenta)">0</div><div class="hstat-lbl">Parada</div></div>
     </div>
     <div>
       <div class="live-clock" id="clock">--:--:--</div>
@@ -584,17 +210,9 @@
 
 <!-- LEGEND -->
 <div class="legend-bar">
-  <div class="legend-item">
-    <div class="legend-dot" style="background:var(--botheven)"></div>
-    BOTHEVEN (M1–M3)
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background:var(--peashinn)"></div>
-    PEA SHINN (M4–M10)
-  </div>
-  <div class="legend-item" style="margin-left:auto; font-size:10px; color:var(--pin-color)">
-    🔐 PIN SUPERVISOR REQUERIDO PARA EDITAR
-  </div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--botheven)"></div>BOTHEVEN (M1–M3)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--peashinn)"></div>PEA SHINN (M4–M10)</div>
+  <div class="legend-item" style="margin-left:auto; font-size:10px; color:var(--pin-color)">🔐 PIN SUPERVISOR REQUERIDO PARA EDITAR</div>
 </div>
 
 <!-- MACHINES GRID -->
@@ -607,23 +225,14 @@
     <div class="modal-sub">Ingrese PIN para desbloquear edición</div>
     <div class="pin-machine-name" id="pinMachineName"></div>
     <div class="pin-display" id="pinDisplay">
-      <div class="pin-dot" id="d0"></div>
-      <div class="pin-dot" id="d1"></div>
-      <div class="pin-dot" id="d2"></div>
-      <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="pin-pad">
-      <button class="pin-btn" onclick="pinPress('1')">1</button>
-      <button class="pin-btn" onclick="pinPress('2')">2</button>
-      <button class="pin-btn" onclick="pinPress('3')">3</button>
-      <button class="pin-btn" onclick="pinPress('4')">4</button>
-      <button class="pin-btn" onclick="pinPress('5')">5</button>
-      <button class="pin-btn" onclick="pinPress('6')">6</button>
-      <button class="pin-btn" onclick="pinPress('7')">7</button>
-      <button class="pin-btn" onclick="pinPress('8')">8</button>
-      <button class="pin-btn" onclick="pinPress('9')">9</button>
-      <button class="pin-btn del" onclick="pinDel()">⌫ DEL</button>
-      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn del" onclick="pinDel()">⌫ DEL</button><button class="pin-btn" onclick="pinPress('0')">0</button>
       <button class="pin-btn" onclick="pinClear()" style="font-size:10px;color:var(--text-dim)">CLR</button>
     </div>
     <div class="pin-actions">
@@ -634,13 +243,29 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast">✓ GUARDADO</div>
 
+<!-- FIREBASE SDK (compat, para uso simple sin build tools) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <script>
+// ─── FIREBASE CONFIG ──────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBeUtAHTFAQtGKvIpoGECgEFRic7wGAI9o",
+  authDomain: "tablero-digital-nuevo.firebaseapp.com",
+  databaseURL: "https://tablero-digital-nuevo-default-rtdb.firebaseio.com",
+  projectId: "tablero-digital-nuevo",
+  storageBucket: "tablero-digital-nuevo.firebasestorage.app",
+  messagingSenderId: "372299935930",
+  appId: "1:372299935930:web:c3541b760b3b954f83d283"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRef = db.ref('tablero_impresion'); // nodo raíz de todos los datos
+
 // ─── CONFIG ───────────────────────────────
 const SUPERVISOR_PIN = '1234'; // Cambiar según requiera
-
 const MACHINES = [
   { id: 1, name: 'BOTHEVEN', type: 'botheven' },
   { id: 2, name: 'BOTHEVEN', type: 'botheven' },
@@ -653,37 +278,37 @@ const MACHINES = [
   { id: 9, name: 'PEA SHINN', type: 'peashinn' },
   { id:10, name: 'PEA SHINN', type: 'peashinn' },
 ];
-
 const TIPO_TELA = ['LAMINADA','CORRIENTE','MICROPERFORADA','FRANJA','ESPECIAL'];
 const ADICIONAL = ['SIN ADICIONAL','FUELLE','FRANJA','MICROPERFORADA','ESPECIAL'];
 
 // State
-let unlockedCards = {}; // cardId -> true
+let unlockedCards = {}; // cardId -> true (solo local, cada dispositivo desbloquea el suyo)
 let pinTarget = null;
 let pinBuffer = '';
-let cardData = {};
+let cardData = {};       // espejo local de los datos que vienen de Firebase
+let editingFields = {};  // campos que el usuario está escribiendo AHORA MISMO en este dispositivo (para no pisarlos con datos entrantes)
+let isFirstLoad = true;
 
-// Load from localStorage
-function loadData() {
-  const saved = localStorage.getItem('flexo_data');
-  if (saved) {
-    try { cardData = JSON.parse(saved); } catch(e) { cardData = {}; }
-  }
+// ─── CONEXIÓN / ESTADO ────────────────────
+function setConnStatus(state){
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connTxt');
+  dot.className = 'conn-dot ' + state;
+  if(state==='online'){ txt.textContent = 'Conectado — Sincronización en tiempo real activa'; }
+  else if(state==='offline'){ txt.textContent = 'Sin conexión — los cambios se enviarán al reconectar'; }
+  else { txt.textContent = 'Conectando a la nube…'; }
 }
-
-function saveData() {
-  localStorage.setItem('flexo_data', JSON.stringify(cardData));
-}
+db.ref('.info/connected').on('value', (snap) => {
+  setConnStatus(snap.val() === true ? 'online' : 'offline');
+});
 
 // ─── CLOCK ────────────────────────────────
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('es-CO', { hour12: false });
+  document.getElementById('clock').textContent = now.toLocaleTimeString('es-CO', { hour12: false });
   const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  document.getElementById('dateLine').textContent =
-    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('dateLine').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -702,200 +327,135 @@ function updateStats() {
   document.getElementById('stat-stop').textContent = stop;
 }
 
-// ─── BUILD GRID ───────────────────────────
+// ─── BUILD GRID (renderiza TODAS las tarjetas de nuevo) ──
 function buildGrid() {
-  loadData();
   const grid = document.getElementById('grid');
+  const scrollY = window.scrollY;
   grid.innerHTML = '';
   MACHINES.forEach(m => {
     const d = cardData[m.id] || {};
     grid.appendChild(buildCard(m, d));
   });
   updateStats();
+  window.scrollTo(0, scrollY);
 }
 
 function buildCard(m, d) {
   const card = document.createElement('div');
   card.className = `machine-card ${m.type}`;
   card.id = `card-${m.id}`;
-
-  const statusClass = {'active':'status-active','pause':'status-pause','stop':'status-stop'};
-  const statusLabel = {'active':'ACTIVA','pause':'PAUSA','stop':'PARADA'};
   const status = d.status || 'active';
   const unlocked = !!unlockedCards[m.id];
 
-  // Header
   card.innerHTML = `
-  <div class="card-header">
-    <div class="machine-id-block">
-      <div class="machine-num">M${String(m.id).padStart(2,'0')}</div>
-      <div class="machine-name-block">
-        <div class="machine-name">${m.name}</div>
-        <div class="machine-type-tag">FLEXOGRAFÍA — IMPRESIÓN</div>
+    <div class="card-header">
+      <div class="machine-id-block">
+        <div class="machine-num">M${String(m.id).padStart(2,'0')}</div>
+        <div class="machine-name-block">
+          <div class="machine-name">${m.name}</div>
+          <div class="machine-type-tag">FLEXOGRAFÍA — IMPRESIÓN</div>
+        </div>
       </div>
-    </div>
-    <div class="card-header-right">
-      <select class="field-select status-select" id="status-${m.id}" onchange="changeStatus(${m.id}, this.value)"
-        style="background:transparent;border:none;font-family:var(--font-mono);font-size:11px;padding:3px 7px;border-radius:2px;cursor:pointer;color:var(--text)">
-        <option value="active" ${status==='active'?'selected':''} style="background:var(--panel)">● ACTIVA</option>
-        <option value="pause"  ${status==='pause' ?'selected':''} style="background:var(--panel)">◐ PAUSA</option>
-        <option value="stop"   ${status==='stop'  ?'selected':''} style="background:var(--panel)">■ PARADA</option>
-      </select>
-      <div class="sup-badge" id="supbadge-${m.id}">🔓 SUP</div>
-      <button class="sup-btn" onclick="openPin(${m.id})" title="Acceso Supervisor">🔐 PIN</button>
-    </div>
-  </div>
-
-  <div class="card-body ${unlocked?'':'locked'}" id="body-${m.id}" style="position:relative">
-    <div class="lock-overlay ${unlocked?'':'active'}" id="overlay-${m.id}">
-      <div class="lock-icon">🔒</div>
-      <div>REQUIERE PIN SUPERVISOR</div>
-      <button class="sup-btn" onclick="openPin(${m.id})" style="margin-top:6px">INGRESAR PIN</button>
-    </div>
-
-    <!-- ROW 1: IMP / HORA / DÍA / CONSEC -->
-    <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
-      <div class="field-block">
-        <div class="field-label">IMP.</div>
-        <input class="field-input" placeholder="—" value="${d.imp||''}" onchange="setField(${m.id},'imp',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">HORA</div>
-        <input class="field-input" type="time" value="${d.hora||''}" onchange="setField(${m.id},'hora',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">DÍA</div>
-        <input class="field-input" placeholder="Sab/Lun…" value="${d.dia||''}" onchange="setField(${m.id},'dia',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">CONSEC.</div>
-        <input class="field-input" placeholder="0205-01" value="${d.consec||''}" onchange="setField(${m.id},'consec',this.value)">
-      </div>
-    </div>
-
-    <!-- ROW 2: ITEM TELA IMP / COD CYREL -->
-    <div class="fields-grid" style="grid-template-columns:2fr 1fr">
-      <div class="field-block">
-        <div class="field-label">ITEM TELA / TELIMP</div>
-        <input class="field-input" placeholder="Ej: 28225" value="${d.itemTela||''}" onchange="setField(${m.id},'itemTela',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">COD. CYREL</div>
-        <input class="field-input" placeholder="A662" value="${d.codCyrel||''}" onchange="setField(${m.id},'codCyrel',this.value)">
-      </div>
-    </div>
-
-    <!-- ROW 3: CLIENTE/IMPRESIÓN full width -->
-    <div class="fields-grid" style="grid-template-columns:1fr">
-      <div class="field-block">
-        <div class="field-label">CLIENTE / IMPRESIÓN</div>
-        <input class="field-input" placeholder="Nombre del cliente y descripción del trabajo…" value="${d.cliente||''}" onchange="setField(${m.id},'cliente',this.value)" style="font-size:11px">
-      </div>
-    </div>
-
-    <!-- ROW 4: TIPO TELA / LARGO IMP / ADICIONAL -->
-    <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="field-block">
-        <div class="field-label">TIPO DE TELA</div>
-        <select class="field-select" onchange="setField(${m.id},'tipoTela',this.value)">
-          <option value="">—</option>
-          ${TIPO_TELA.map(t=>`<option value="${t}" ${(d.tipoTela||'')==t?'selected':''}>${t}</option>`).join('')}
+      <div class="card-header-right">
+        <select class="field-select status-select" id="status-${m.id}" onchange="changeStatus(${m.id}, this.value)"
+          style="background:transparent;border:none;font-family:var(--font-mono);font-size:11px;padding:3px 7px;border-radius:2px;cursor:pointer;color:var(--text)">
+          <option value="active" ${status==='active'?'selected':''} style="background:var(--panel)">● ACTIVA</option>
+          <option value="pause" ${status==='pause' ?'selected':''} style="background:var(--panel)">◐ PAUSA</option>
+          <option value="stop" ${status==='stop' ?'selected':''} style="background:var(--panel)">■ PARADA</option>
         </select>
-      </div>
-      <div class="field-block">
-        <div class="field-label">LARGO IMPRESIÓN (m)</div>
-        <input class="field-input" type="number" placeholder="100" value="${d.largo||''}" onchange="setField(${m.id},'largo',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">ADICIONAL</div>
-        <select class="field-select" onchange="setField(${m.id},'adicional',this.value)">
-          <option value="">—</option>
-          ${ADICIONAL.map(a=>`<option value="${a}" ${(d.adicional||'')==a?'selected':''}>${a}</option>`).join('')}
-        </select>
+        <div class="sup-badge" id="supbadge-${m.id}" style="display:${unlocked?'inline':'none'}">🔓 SUP</div>
+        <button class="sup-btn" onclick="openPin(${m.id})" title="Acceso Supervisor">🔐 PIN</button>
       </div>
     </div>
+    <div class="card-body ${unlocked?'':'locked'}" id="body-${m.id}" style="position:relative">
+      <div class="lock-overlay ${unlocked?'':'active'}" id="overlay-${m.id}">
+        <div class="lock-icon">🔒</div>
+        <div>REQUIERE PIN SUPERVISOR</div>
+        <button class="sup-btn" onclick="openPin(${m.id})" style="margin-top:6px">INGRESAR PIN</button>
+      </div>
 
-    <!-- ROW 5: OBSERVACIONES -->
-    <div class="fields-grid" style="grid-template-columns:1fr">
-      <div class="field-block">
-        <div class="field-label">OBSERVACIONES</div>
-        <textarea class="field-textarea" rows="2" placeholder="Ej: PASAR A, HACER NO, X/o…" onchange="setField(${m.id},'observ',this.value)">${d.observ||''}</textarea>
+      <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="field-block"><div class="field-label">IMP.</div><input class="field-input" placeholder="—" value="${d.imp||''}" onfocus="fieldFocus(${m.id},'imp')" onblur="fieldBlur(${m.id},'imp')" oninput="setField(${m.id},'imp',this.value)"></div>
+        <div class="field-block"><div class="field-label">HORA</div><input class="field-input" type="time" value="${d.hora||''}" onfocus="fieldFocus(${m.id},'hora')" onblur="fieldBlur(${m.id},'hora')" oninput="setField(${m.id},'hora',this.value)"></div>
+        <div class="field-block"><div class="field-label">DÍA</div><input class="field-input" placeholder="Sab/Lun…" value="${d.dia||''}" onfocus="fieldFocus(${m.id},'dia')" onblur="fieldBlur(${m.id},'dia')" oninput="setField(${m.id},'dia',this.value)"></div>
+        <div class="field-block"><div class="field-label">CONSEC.</div><input class="field-input" placeholder="0205-01" value="${d.consec||''}" onfocus="fieldFocus(${m.id},'consec')" onblur="fieldBlur(${m.id},'consec')" oninput="setField(${m.id},'consec',this.value)"></div>
       </div>
-    </div>
 
-    <!-- ROW 6: CANTIDADES -->
-    <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="field-block">
-        <div class="field-label">CANTIDAD SACOS</div>
-        <input class="field-input" type="number" placeholder="42,000" value="${d.cantSacos||''}" onchange="setField(${m.id},'cantSacos',this.value);updateProgress(${m.id})">
+      <div class="fields-grid" style="grid-template-columns:2fr 1fr">
+        <div class="field-block"><div class="field-label">ITEM TELA / TELIMP</div><input class="field-input" placeholder="Ej: 28225" value="${d.itemTela||''}" onfocus="fieldFocus(${m.id},'itemTela')" onblur="fieldBlur(${m.id},'itemTela')" oninput="setField(${m.id},'itemTela',this.value)"></div>
+        <div class="field-block"><div class="field-label">COD. CYREL</div><input class="field-input" placeholder="A662" value="${d.codCyrel||''}" onfocus="fieldFocus(${m.id},'codCyrel')" onblur="fieldBlur(${m.id},'codCyrel')" oninput="setField(${m.id},'codCyrel',this.value)"></div>
       </div>
-      <div class="field-block">
-        <div class="field-label">CANT. TELA PROD. (m)</div>
-        <input class="field-input" type="number" placeholder="26,880" value="${d.cantTelaProd||''}" onchange="setField(${m.id},'cantTelaProd',this.value);updateProgress(${m.id})">
-      </div>
-      <div class="field-block">
-        <div class="field-label">CANT. TELA USAR (m)</div>
-        <input class="field-input" type="number" placeholder="1,731" value="${d.cantTelaUsar||''}" onchange="setField(${m.id},'cantTelaUsar',this.value);updateProgress(${m.id})">
-      </div>
-    </div>
 
-    <!-- PROGRESS -->
-    <div class="progress-wrap" style="margin:2px 0 8px">
-      <div class="progress-fill" id="prog-${m.id}" style="width:${calcProgress(d)}%"></div>
-    </div>
-
-    <!-- ROW 7: ITEM TELA A USAR -->
-    <div class="fields-grid" style="grid-template-columns:1fr 1fr">
-      <div class="field-block">
-        <div class="field-label">ITEM TELA A USAR</div>
-        <input class="field-input" placeholder="Ej: 23372" value="${d.itemTelaUsar||''}" onchange="setField(${m.id},'itemTelaUsar',this.value)">
+      <div class="fields-grid" style="grid-template-columns:1fr">
+        <div class="field-block"><div class="field-label">CLIENTE / IMPRESIÓN</div><input class="field-input" placeholder="Nombre del cliente y descripción del trabajo…" value="${d.cliente||''}" onfocus="fieldFocus(${m.id},'cliente')" onblur="fieldBlur(${m.id},'cliente')" oninput="setField(${m.id},'cliente',this.value)" style="font-size:11px"></div>
       </div>
-      <div class="field-block">
-        <div class="field-label">TELA PROD. (m) DATO</div>
-        <input class="field-input" type="number" placeholder="26,880" value="${d.telaProdDato||''}" onchange="setField(${m.id},'telaProdDato',this.value)">
+
+      <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="field-block"><div class="field-label">TIPO DE TELA</div>
+          <select class="field-select" onchange="setField(${m.id},'tipoTela',this.value)">
+            <option value="">—</option>
+            ${TIPO_TELA.map(t=>`<option value="${t}" ${(d.tipoTela||'')==t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field-block"><div class="field-label">LARGO IMPRESIÓN (m)</div><input class="field-input" type="number" placeholder="100" value="${d.largo||''}" onfocus="fieldFocus(${m.id},'largo')" onblur="fieldBlur(${m.id},'largo')" oninput="setField(${m.id},'largo',this.value)"></div>
+        <div class="field-block"><div class="field-label">ADICIONAL</div>
+          <select class="field-select" onchange="setField(${m.id},'adicional',this.value)">
+            <option value="">—</option>
+            ${ADICIONAL.map(a=>`<option value="${a}" ${(d.adicional||'')==a?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div class="fields-grid" style="grid-template-columns:1fr">
+        <div class="field-block"><div class="field-label">OBSERVACIONES</div><textarea class="field-textarea" rows="2" placeholder="Ej: PASAR A, HACER NO, X/o…" onfocus="fieldFocus(${m.id},'observ')" onblur="fieldBlur(${m.id},'observ')" oninput="setField(${m.id},'observ',this.value)">${d.observ||''}</textarea></div>
+      </div>
+
+      <div class="fields-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="field-block"><div class="field-label">CANTIDAD SACOS</div><input class="field-input" type="number" placeholder="42,000" value="${d.cantSacos||''}" onfocus="fieldFocus(${m.id},'cantSacos')" onblur="fieldBlur(${m.id},'cantSacos')" oninput="setField(${m.id},'cantSacos',this.value);updateProgress(${m.id})"></div>
+        <div class="field-block"><div class="field-label">CANT. TELA PROD. (m)</div><input class="field-input" type="number" placeholder="26,880" value="${d.cantTelaProd||''}" onfocus="fieldFocus(${m.id},'cantTelaProd')" onblur="fieldBlur(${m.id},'cantTelaProd')" oninput="setField(${m.id},'cantTelaProd',this.value);updateProgress(${m.id})"></div>
+        <div class="field-block"><div class="field-label">CANT. TELA USAR (m)</div><input class="field-input" type="number" placeholder="1,731" value="${d.cantTelaUsar||''}" onfocus="fieldFocus(${m.id},'cantTelaUsar')" onblur="fieldBlur(${m.id},'cantTelaUsar')" oninput="setField(${m.id},'cantTelaUsar',this.value);updateProgress(${m.id})"></div>
+      </div>
+
+      <div class="progress-wrap" style="margin:2px 0 8px"><div class="progress-fill" id="prog-${m.id}" style="width:${calcProgress(d)}%"></div></div>
+
+      <div class="fields-grid" style="grid-template-columns:1fr 1fr">
+        <div class="field-block"><div class="field-label">ITEM TELA A USAR</div><input class="field-input" placeholder="Ej: 23372" value="${d.itemTelaUsar||''}" onfocus="fieldFocus(${m.id},'itemTelaUsar')" onblur="fieldBlur(${m.id},'itemTelaUsar')" oninput="setField(${m.id},'itemTelaUsar',this.value)"></div>
+        <div class="field-block"><div class="field-label">TELA PROD. (m) DATO</div><input class="field-input" type="number" placeholder="26,880" value="${d.telaProdDato||''}" onfocus="fieldFocus(${m.id},'telaProdDato')" onblur="fieldBlur(${m.id},'telaProdDato')" oninput="setField(${m.id},'telaProdDato',this.value)"></div>
+      </div>
+
+      <div class="operarios-row">
+        <div class="field-block"><div class="field-label">👷 OPERARIO</div><input class="field-input" placeholder="Nombre operario" value="${d.operario||''}" onfocus="fieldFocus(${m.id},'operario')" onblur="fieldBlur(${m.id},'operario')" oninput="setField(${m.id},'operario',this.value)"></div>
+        <div class="field-block"><div class="field-label">🔧 AUXILIAR</div><input class="field-input" placeholder="Nombre auxiliar" value="${d.auxiliar||''}" onfocus="fieldFocus(${m.id},'auxiliar')" onblur="fieldBlur(${m.id},'auxiliar')" oninput="setField(${m.id},'auxiliar',this.value)"></div>
       </div>
     </div>
-
-    <!-- ROW 8: OPERARIO / AUXILIAR -->
-    <div class="operarios-row">
-      <div class="field-block">
-        <div class="field-label">👷 OPERARIO</div>
-        <input class="field-input" placeholder="Nombre operario" value="${d.operario||''}" onchange="setField(${m.id},'operario',this.value)">
-      </div>
-      <div class="field-block">
-        <div class="field-label">🔧 AUXILIAR</div>
-        <input class="field-input" placeholder="Nombre auxiliar" value="${d.auxiliar||''}" onchange="setField(${m.id},'auxiliar',this.value)">
+    <div class="card-footer">
+      <div class="footer-time" id="lastupd-${m.id}">${d.lastUpdate ? 'Actualizado: ' + d.lastUpdate : 'Sin cambios'}</div>
+      <div class="footer-actions">
+        <button class="btn-sm clear" onclick="clearCard(${m.id})">LIMPIAR</button>
+        <button class="btn-sm save" onclick="saveCard(${m.id})">GUARDAR</button>
       </div>
     </div>
-
-  </div><!-- /card-body -->
-
-  <div class="card-footer">
-    <div class="footer-time" id="lastupd-${m.id}">
-      ${d.lastUpdate ? 'Actualizado: ' + d.lastUpdate : 'Sin cambios'}
-    </div>
-    <div class="footer-actions">
-      <button class="btn-sm clear" onclick="clearCard(${m.id})">LIMPIAR</button>
-      <button class="btn-sm save"  onclick="saveCard(${m.id})">GUARDAR</button>
-    </div>
-  </div>
   `;
-
   return card;
 }
+
+// ─── FOCUS TRACKING (para no sobreescribir mientras el usuario escribe) ──
+function fieldFocus(id, key){ editingFields[id+'_'+key] = true; }
+function fieldBlur(id, key){ delete editingFields[id+'_'+key]; }
 
 // ─── FIELD LOGIC ──────────────────────────
 function setField(id, key, val) {
   if (!unlockedCards[id]) return;
   if (!cardData[id]) cardData[id] = {};
   cardData[id][key] = val;
+  // Escritura optimista: guarda en Firebase inmediatamente en segundo plano
+  dbRef.child(id).child(key).set(val).catch(()=>{});
 }
 
 function changeStatus(id, val) {
   if (!cardData[id]) cardData[id] = {};
   cardData[id].status = val;
-  saveData();
-  // update badge color
+  dbRef.child(id).child('status').set(val).catch(()=>{});
   updateStats();
 }
 
@@ -905,7 +465,6 @@ function calcProgress(d) {
   if (!prod) return 0;
   return Math.min(100, Math.round((usar / prod) * 100));
 }
-
 function updateProgress(id) {
   const d = cardData[id] || {};
   const pct = calcProgress(d);
@@ -919,8 +478,11 @@ function saveCard(id) {
   const now = new Date().toLocaleTimeString('es-CO', {hour12:false});
   cardData[id].lastUpdate = now;
   document.getElementById(`lastupd-${id}`).textContent = 'Actualizado: ' + now;
-  saveData();
-  showToast();
+  dbRef.child(id).update(cardData[id]).then(()=>{
+    showToast();
+  }).catch(()=>{
+    showToast('⚠ SIN CONEXIÓN — SE GUARDÓ LOCAL');
+  });
   updateStats();
 }
 
@@ -928,13 +490,15 @@ function clearCard(id) {
   if (!unlockedCards[id]) { openPin(id); return; }
   if (!confirm(`¿Limpiar todos los datos de M${String(id).padStart(2,'0')}?`)) return;
   const status = (cardData[id]||{}).status || 'active';
-  cardData[id] = { status };
-  saveData();
+  const cleared = { status };
+  cardData[id] = cleared;
+  dbRef.child(id).set(cleared).catch(()=>{});
   buildGrid();
 }
 
-function showToast() {
+function showToast(msg) {
   const t = document.getElementById('toast');
+  t.textContent = msg || '✓ GUARDADO';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
@@ -945,49 +509,32 @@ function openPin(id) {
   pinBuffer = '';
   updatePinDisplay();
   document.getElementById('pinError').textContent = '';
-  document.getElementById('pinMachineName').textContent =
-    `M${String(id).padStart(2,'0')} — ${MACHINES[id-1].name}`;
+  document.getElementById('pinMachineName').textContent = `M${String(id).padStart(2,'0')} — ${MACHINES[id-1].name}`;
   document.getElementById('pinModal').classList.add('active');
 }
-
 function closePin() {
   document.getElementById('pinModal').classList.remove('active');
   pinTarget = null;
   pinBuffer = '';
 }
-
 function pinPress(digit) {
   if (pinBuffer.length >= 4) return;
   pinBuffer += digit;
   updatePinDisplay();
   if (pinBuffer.length === 4) confirmPin();
 }
-
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updatePinDisplay();
-}
-
-function pinClear() {
-  pinBuffer = '';
-  updatePinDisplay();
-}
-
+function pinDel() { pinBuffer = pinBuffer.slice(0, -1); updatePinDisplay(); }
+function pinClear() { pinBuffer = ''; updatePinDisplay(); }
 function updatePinDisplay() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
-  }
+  for (let i = 0; i < 4; i++) document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
 }
-
 function confirmPin() {
   if (pinBuffer === SUPERVISOR_PIN) {
     unlockedCards[pinTarget] = true;
-    // Unlock UI
     const body = document.getElementById(`body-${pinTarget}`);
     const overlay = document.getElementById(`overlay-${pinTarget}`);
     if (body) body.classList.remove('locked');
     if (overlay) overlay.classList.remove('active');
-    // Show badge
     const badge = document.getElementById(`supbadge-${pinTarget}`);
     if (badge) badge.style.display = 'inline';
     closePin();
@@ -995,29 +542,77 @@ function confirmPin() {
     document.getElementById('pinError').textContent = '❌ PIN INCORRECTO — INTENTE DE NUEVO';
     pinBuffer = '';
     updatePinDisplay();
-    setTimeout(() => {
-      document.getElementById('pinError').textContent = '';
-    }, 2000);
+    setTimeout(() => { document.getElementById('pinError').textContent = ''; }, 2000);
   }
 }
-
-// Keyboard support for PIN
 document.addEventListener('keydown', e => {
-  const modal = document.getElementById('pinModal');
-  if (!modal.classList.contains('active')) return;
+  if (!document.getElementById('pinModal').classList.contains('active')) return;
   if (e.key >= '0' && e.key <= '9') pinPress(e.key);
   else if (e.key === 'Backspace') pinDel();
   else if (e.key === 'Enter') confirmPin();
   else if (e.key === 'Escape') closePin();
 });
+document.getElementById('pinModal').addEventListener('click', function(e){ if (e.target === this) closePin(); });
 
-// Close modal on overlay click
-document.getElementById('pinModal').addEventListener('click', function(e) {
-  if (e.target === this) closePin();
+// ─── SINCRONIZACIÓN EN TIEMPO REAL ────────
+// Escucha cambios de CUALQUIER dispositivo y actualiza la pantalla al instante
+dbRef.on('value', (snapshot) => {
+  const remoteData = snapshot.val() || {};
+  cardData = remoteData;
+
+  if (isFirstLoad) {
+    // Primera carga: construir todo el grid
+    buildGrid();
+    isFirstLoad = false;
+    return;
+  }
+
+  // Actualizaciones posteriores: refrescar solo lo necesario sin perder el foco del usuario
+  MACHINES.forEach(m => {
+    const d = cardData[m.id] || {};
+    const card = document.getElementById(`card-${m.id}`);
+    if (!card) return;
+
+    // Actualizar estado (select)
+    const statusSel = document.getElementById(`status-${m.id}`);
+    if (statusSel && document.activeElement !== statusSel) statusSel.value = d.status || 'active';
+
+    // Actualizar cada campo, EXCEPTO el que el usuario está editando ahora mismo
+    const fieldMap = ['imp','hora','dia','consec','itemTela','codCyrel','cliente','largo','observ','cantSacos','cantTelaProd','cantTelaUsar','itemTelaUsar','telaProdDato','operario','auxiliar'];
+    fieldMap.forEach(key => {
+      if (editingFields[m.id+'_'+key]) return; // no pisar mientras escribe
+      const inputs = card.querySelectorAll('.field-input, .field-textarea');
+      // Buscar el input correspondiente por su atributo oninput/onchange que contiene el key
+      inputs.forEach(inp => {
+        const attr = inp.getAttribute('oninput') || '';
+        if (attr.includes(`'${key}'`) && document.activeElement !== inp) {
+          const val = d[key] || '';
+          if (inp.value !== val) inp.value = val;
+        }
+      });
+    });
+
+    // Selects de tipoTela / adicional
+    const selects = card.querySelectorAll('.field-select:not(.status-select)');
+    selects.forEach(sel => {
+      const attr = sel.getAttribute('onchange') || '';
+      if (attr.includes("'tipoTela'") && document.activeElement !== sel) sel.value = d.tipoTela || '';
+      if (attr.includes("'adicional'") && document.activeElement !== sel) sel.value = d.adicional || '';
+    });
+
+    // Progreso
+    updateProgress(m.id);
+
+    // Última actualización
+    const lu = document.getElementById(`lastupd-${m.id}`);
+    if (lu) lu.textContent = d.lastUpdate ? 'Actualizado: ' + d.lastUpdate : 'Sin cambios';
+  });
+
+  updateStats();
+}, (error) => {
+  console.error('Error de sincronización Firebase:', error);
+  setConnStatus('offline');
 });
-
-// ─── INIT ─────────────────────────────────
-buildGrid();
 </script>
 </body>
 </html>
